@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiseong Youn — Toy Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --yellow:#FFD93D;--coral:#FF6B6B;--mint:#6BCB77;--sky:#4FC3F7;--lav:#B39DDB;
+  --cream:#FFF8F0;--dark:#2D2D2D;--mid:#555;--light:#888;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--dark);}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:62px;background:rgba(255,248,240,0.96);border-bottom:2.5px solid var(--yellow);position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);}
+.logo{font-family:'Fredoka One',cursive;font-size:22px;color:var(--coral);}
+nav ul{display:flex;gap:24px;list-style:none;}
+nav a{font-size:13px;font-weight:700;color:var(--mid);text-decoration:none;transition:color 0.15s;}
+nav a:hover{color:var(--coral);}
+
+/* EDIT BTN */
+.edit-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--dark);background:#fff;cursor:pointer;font-size:13px;box-shadow:2px 2px 0 var(--dark);transition:transform 0.12s,box-shadow 0.12s;flex-shrink:0;}
+.edit-btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--dark);background:var(--yellow);}
+.sec-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+.sec-tag{font-size:11px;font-weight:800;color:var(--light);letter-spacing:1.5px;text-transform:uppercase;}
+.sec-title{font-family:'Fredoka One',cursive;font-size:clamp(26px,4vw,40px);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:20px;border:2.5px solid var(--dark);padding:28px;width:min(560px,94vw);max-height:88vh;overflow-y:auto;box-shadow:6px 6px 0 var(--dark);transform:translateY(20px);transition:transform 0.2s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-title{font-family:'Fredoka One',cursive;font-size:22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+.modal-close{background:none;border:1.5px solid #ddd;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:18px;color:var(--light);font-family:'Nunito',sans-serif;}
+.modal-close:hover{border-color:var(--coral);color:var(--coral);}
+label{display:block;font-size:12px;font-weight:700;color:var(--mid);margin:12px 0 4px;}
+label:first-of-type{margin-top:0;}
+input[type=text],input[type=email],textarea,select{width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;color:var(--dark);outline:none;transition:border-color 0.15s;}
+input:focus,textarea:focus,select:focus{border-color:var(--coral);}
+textarea{resize:vertical;min-height:80px;}
+.upload-area{border:2px dashed #ccc;border-radius:12px;padding:16px;text-align:center;cursor:pointer;font-size:13px;color:var(--light);font-weight:600;background:#fafafa;transition:border-color 0.15s;}
+.upload-area:hover{border-color:var(--coral);color:var(--coral);}
+.upload-area input{display:none;}
+.modal-save{width:100%;margin-top:20px;padding:14px;background:var(--coral);color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:3px 3px 0 #c0392b;transition:transform 0.12s,box-shadow 0.12s;}
+.modal-save:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #c0392b;}
+.del-btn{background:none;border:1.5px solid #e0e0e0;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:12px;color:#aaa;font-family:'Nunito',sans-serif;font-weight:700;transition:all 0.12s;}
+.del-btn:hover{border-color:var(--coral);color:var(--coral);}
+.back-btn{background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--coral);padding:0 0 14px;font-family:'Nunito',sans-serif;}
+.proj-modal-item{display:flex;gap:10px;align-items:center;padding:10px;border:1.5px solid #eee;border-radius:12px;margin-bottom:8px;cursor:pointer;transition:border-color 0.12s;background:#fafafa;}
+.proj-modal-item:hover{border-color:var(--coral);}
+.proj-modal-thumb{width:42px;height:51px;border-radius:8px;border:1.5px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;background:#f5f5f5;flex-shrink:0;}
+.proj-modal-thumb img{width:100%;height:100%;object-fit:cover;}
+.proj-modal-info{flex:1;min-width:0;}
+.proj-modal-info strong{font-size:13px;font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.proj-modal-info span{font-size:11px;color:var(--light);}
+.proj-add-btn{width:100%;background:none;border:1.5px dashed #ccc;border-radius:10px;padding:10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--light);font-family:'Nunito',sans-serif;transition:all 0.12s;margin-top:6px;}
+.proj-add-btn:hover{border-color:var(--coral);color:var(--coral);}
+.skill-row{display:flex;gap:8px;margin-bottom:8px;}
+.skill-row input{flex:1;}
+.add-skill-btn{width:100%;background:none;border:1.5px dashed #ccc;border-radius:8px;padding:9px;cursor:pointer;font-size:13px;font-weight:700;color:var(--light);font-family:'Nunito',sans-serif;transition:all 0.12s;}
+.add-skill-btn:hover{border-color:var(--coral);color:var(--coral);}
+
+/* HERO */
+#hero{padding:80px 40px 64px;text-align:center;background:var(--cream);position:relative;overflow:hidden;}
+.hero-bubble{position:absolute;border-radius:50%;opacity:0.15;pointer-events:none;}
+#hero h1{font-family:'Fredoka One',cursive;font-size:clamp(48px,9vw,88px);line-height:1.1;margin-bottom:14px;}
+#hero h1 span{color:var(--coral);}
+#hero .tagline{font-size:16px;color:var(--mid);font-weight:600;max-width:460px;margin:0 auto 32px;line-height:1.7;}
+.cta-btn{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:#fff;font-weight:800;font-size:15px;padding:14px 30px;border-radius:50px;border:none;cursor:pointer;box-shadow:4px 4px 0 var(--dark);transition:transform 0.12s,box-shadow 0.12s;font-family:'Nunito',sans-serif;}
+.cta-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--dark);}
+.hero-edit{position:absolute;top:16px;right:16px;}
+
+/* ABOUT */
+#about{padding:64px 40px;background:#fff;}
+.about-inner{max-width:800px;margin:0 auto;}
+.about-row{display:flex;gap:32px;align-items:center;flex-wrap:wrap;margin-top:4px;}
+.avatar{width:110px;height:110px;border-radius:22px;background:var(--yellow);border:2.5px solid var(--dark);display:flex;align-items:center;justify-content:center;font-size:58px;box-shadow:5px 5px 0 var(--dark);flex-shrink:0;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.about-bio{flex:1;font-size:15px;color:var(--mid);line-height:1.8;}
+.about-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.pill{padding:7px 16px;border-radius:40px;font-size:12px;font-weight:700;border:2px solid var(--dark);background:var(--cream);}
+
+/* PROJECTS */
+#projects{padding:64px 40px;background:var(--cream);}
+.projects-inner{max-width:720px;margin:0 auto;}
+.cat-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;}
+.cat-tab{padding:8px 20px;border-radius:40px;font-size:12px;font-weight:700;border:2px solid;cursor:pointer;font-family:'Nunito',sans-serif;transition:all 0.15s;background:#fff;}
+.cat-tab:hover{filter:brightness(0.92);}
+
+/* 1열, 이미지 비율 자동 */
+.proj-grid{display:flex;flex-direction:column;gap:24px;}
+.proj-card{background:#fff;border-radius:18px;border:2.5px solid var(--dark);overflow:hidden;box-shadow:5px 5px 0 var(--dark);transition:transform 0.15s,box-shadow 0.15s;}
+.proj-card:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 var(--dark);}
+.proj-thumb{width:100%;aspect-ratio:4/5;position:relative;border-bottom:2px solid var(--dark);background:#f5f5f5;overflow:hidden;}
+.proj-thumb-inner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:120px;}
+.proj-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;}
+.cat-badge{position:absolute;top:14px;right:14px;font-size:11px;font-weight:800;padding:5px 13px;border-radius:20px;border:1.5px solid var(--dark);background:rgba(255,255,255,0.93);z-index:1;}
+.proj-body{padding:22px 26px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
+.proj-body-text{flex:1;}
+.proj-body h3{font-family:'Fredoka One',cursive;font-size:22px;margin-bottom:8px;line-height:1.2;}
+.proj-body p{font-size:14px;color:var(--mid);line-height:1.65;}
+
+/* SKILLS */
+#skills{padding:64px 40px;background:#FFF8F0;}
+.skill-chips{display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;}
+.chip{padding:8px 18px;border-radius:40px;font-size:13px;font-weight:700;border:2px solid;color:var(--dark);}
+
+/* CONTACT */
+#contact{padding:64px 40px;background:var(--coral);text-align:center;}
+#contact .sec-tag{color:rgba(255,255,255,0.7);}
+#contact .sec-title{color:#fff;}
+.contact-sub{font-size:15px;color:rgba(255,255,255,0.88);font-weight:600;margin-bottom:28px;line-height:1.65;}
+.contact-chips{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;}
+.c-chip{background:#fff;border-radius:40px;padding:12px 26px;font-weight:700;font-size:14px;color:var(--dark);border:2px solid var(--dark);box-shadow:4px 4px 0 var(--dark);text-decoration:none;transition:transform 0.12s,box-shadow 0.12s;}
+.c-chip:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--dark);}
+
+/* FOOTER */
+footer{background:var(--dark);color:#888;text-align:center;padding:28px;font-size:13px;font-weight:600;}
+footer span{color:var(--coral);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--mint);color:#fff;font-weight:800;font-size:14px;padding:13px 30px;border-radius:40px;border:2px solid #2e7d32;box-shadow:3px 3px 0 #2e7d32;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;white-space:nowrap;}
+
+@media(max-width:600px){
+  nav{padding:0 20px;}
+  nav ul{gap:12px;}
+  #hero,#about,#projects,#skills,#contact{padding-left:20px;padding-right:20px;}
+  .proj-body{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Kiseong ✦</span>
+  <ul>
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button onclick="saveToStorage();showToast();" style="background:var(--dark);color:#fff;border:none;border-radius:30px;padding:8px 18px;font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;cursor:pointer;box-shadow:2px 2px 0 #888;transition:transform 0.12s;">💾 저장</button>
+</nav>
+
+<section id="hero">
+  <div class="hero-bubble" style="width:300px;height:300px;background:#FFD93D;top:-80px;right:-80px;"></div>
+  <div class="hero-bubble" style="width:180px;height:180px;background:#FF6B6B;bottom:30px;left:-30px;"></div>
+  <div class="hero-bubble" style="width:120px;height:120px;background:#6BCB77;top:30%;right:6%;"></div>
+  <button class="edit-btn hero-edit" onclick="openModal('hero')" title="수정">✏️</button>
+  <h1>Kiseong<br><span id="v-accent">Youn</span></h1>
+  <p class="tagline" id="v-tagline">Designing toys that spark imagination, nurture play, and bring joy to every child's hands.</p>
+  <button class="cta-btn" onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})">See My Work →</button>
+</section>
+
+<section id="about">
+  <div class="about-inner">
+    <div class="sec-header">
+      <div><p class="sec-tag">About Me</p><h2 class="sec-title">Hi, I'm Kiseong!</h2></div>
+      <button class="edit-btn" onclick="openModal('about')">✏️</button>
+    </div>
+    <div class="about-row">
+      <div class="avatar" id="v-avatar"><span id="v-avatar-emoji">🧸</span></div>
+      <div>
+        <p class="about-bio" id="v-about-bio">I'm a BFA Toy Design student at FIT in New York. I believe toys are more than objects — they're tools for children to explore the world, build connections, and discover themselves.</p>
+        <div class="about-pills" id="v-pills"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="projects-inner">
+    <div class="sec-header">
+      <div><p class="sec-tag">Projects / Works</p><h2 class="sec-title">What I've Made</h2></div>
+      <button class="edit-btn" onclick="openModal('projects')">✏️</button>
+    </div>
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <div class="proj-grid" id="v-proj-grid"></div>
+  </div>
+</section>
+
+<section id="skills">
+  <div style="max-width:720px;margin:0 auto;">
+    <div class="sec-header">
+      <div><p class="sec-tag">Skills</p><h2 class="sec-title">What I Bring</h2></div>
+      <button class="edit-btn" onclick="openModal('skills')">✏️</button>
+    </div>
+    <div class="skill-chips" id="v-skills"></div>
+  </div>
+</section>
+
+<section id="contact">
+  <div style="max-width:640px;margin:0 auto;">
+    <div class="sec-header" style="justify-content:center;gap:14px;">
+      <div><p class="sec-tag">Contact</p><h2 class="sec-title">Let's Create Together!</h2></div>
+      <button class="edit-btn" style="border-color:#fff;background:rgba(255,255,255,0.3);" onclick="openModal('contact')">✏️</button>
+    </div>
+    <p class="contact-sub" id="v-contact-sub">Whether it's an internship, collaboration, or just a conversation about toys — I'd love to hear from you.</p>
+    <div class="contact-chips">
+      <a class="c-chip" id="v-email-link" href="#">✉️ <span id="v-email">your@email.com</span></a>
+      <a class="c-chip" id="v-linkedin-link" href="#">💼 <span id="v-linkedin">LinkedIn</span></a>
+      <a class="c-chip" id="v-insta-link" href="#">📷 <span id="v-insta">Instagram</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Made with <span>♥</span> by Kiseong Youn · Toy Designer · FIT New York</p>
+</footer>
+
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title"><span id="modal-title-text"></span><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div id="modal-body"></div>
+    <button class="modal-save" id="modal-save-btn" onclick="saveModal()">✅ 저장하기</button>
+  </div>
+</div>
+<div class="toast" id="toast">✅ 저장됐다!</div>
+
+<script>
+const CATS=['Toy Concept','Plush','SolidWorks','ZBrush','Competition'];
+const CAT_STYLE={
+  '전체':       {bg:'#fff',       border:'#2D2D2D',activeBg:'#2D2D2D',activeColor:'#fff'},
+  'Toy Concept':{bg:'#FFF8E133', border:'#e6a800',activeBg:'#FFD93D',activeColor:'#2D2D2D'},
+  'Plush':      {bg:'#F3E5F533', border:'#9c6fc9',activeBg:'#B39DDB',activeColor:'#fff'},
+  'SolidWorks': {bg:'#E8F5E933', border:'#3aaa50',activeBg:'#6BCB77',activeColor:'#fff'},
+  'ZBrush':     {bg:'#FCE4EC33', border:'#e84040',activeBg:'#FF6B6B',activeColor:'#fff'},
+  'Competition':{bg:'#E3F2FD33', border:'#2196f3',activeBg:'#4FC3F7',activeColor:'#fff'},
+};
+const CHIP_COLORS=[
+  {bg:'#FFD93D33',b:'#e6b800'},{bg:'#FF6B6B22',b:'#e84040'},
+  {bg:'#6BCB7733',b:'#3aaa50'},{bg:'#B39DDB33',b:'#7c5cbf'},
+  {bg:'#4FC3F733',b:'#0996c7'},
+];
+const PROJ_COLORS=['#FFF8E1','#E8F5E9','#FCE4EC','#E3F2FD','#F3E5F5','#FFF3E0','#E0F7FA','#F1F8E9'];
+
+let data={
+  accent:'Youn',
+  tagline:"Designing toys that spark imagination, nurture play, and bring joy to every child's hands.",
+  avatarEmoji:'🧸',avatarImg:null,
+  bio:"I'm a BFA Toy Design student at FIT in New York. I believe toys are more than objects — they're tools for children to explore the world, build connections, and discover themselves.",
+  pills:['Toy Design','Child Development','Play Research','3D Modeling','Marketing'],
+  projects:[
+    {emoji:'🐧',title:'Interactive Penguin Toy',desc:'An interactive penguin toy that sings and dances in response to button presses, helping infants develop sensory awareness and cause-and-effect understanding.',bg:'#E3F2FD',cat:'Toy Concept',img:null},
+    {emoji:'🐉',title:'Dragon Rider Doll',desc:'Inspired by How to Train Your Dragon. Encourages imaginative role-play with dragon and rider adventures for young children.',bg:'#F3E5F5',cat:'Toy Concept',img:null},
+    {emoji:'🤖',title:'WALL-E Molding Toy',desc:'A licensed three-step molding toy where children press, shape, and release clay to create different forms inspired by WALL-E.',bg:'#E8F5E9',cat:'Toy Concept',img:null},
+    {emoji:'🧟',title:'Zombie Brain Kinetic Sand',desc:'Children form colorful zombie brains using a brain-shaped dome with kinetic sand. Multiple brains can be made and swapped.',bg:'#E0F7FA',cat:'Toy Concept',img:null},
+    {emoji:'🦈',title:'Captain Shark Ride-On',desc:"A toddler ride-on shark toy. Pressing the handle button releases water through the shark's mouth for interactive play.",bg:'#E3F2FD',cat:'Toy Concept',img:null},
+    {emoji:'🧁',title:'Sweet Saver',desc:'Firefighter equipment reimagined with dessert designs — macaron bubble container, cupcake helmet, and a donut extinguisher that blows bubbles.',bg:'#FCE4EC',cat:'Toy Concept',img:null},
+    {emoji:'🐛',title:'Zippy Bitsy Bug',desc:'A pull-back toy with a simple mechanism. Features various insect versions for added variety and play appeal.',bg:'#F1F8E9',cat:'Toy Concept',img:null},
+    {emoji:'⚡',title:'Volt Kid',desc:'A boy doll with a lightning bolt on his chest. Pressing the button makes it light up.',bg:'#FFF8E1',cat:'Toy Concept',img:null},
+    {emoji:'👃',title:'Sneefy',desc:'A storybook character who expresses emotions through body scent. Reflects the experience of arriving in a new country and being understood over time.',bg:'#F3E5F5',cat:'Toy Concept',img:null},
+    {emoji:'🦋',title:'Cocoon to Butterfly Plush',desc:'Stored inside a cocoon bag, pulling out the wings transforms it into a butterfly — teaching metamorphosis through play.',bg:'#FFF8E1',cat:'Plush',img:null},
+    {emoji:'👃',title:'Sneefy',desc:'A storybook character who expresses emotions through body scent. Reflects the experience of arriving in a new country and being understood over time.',bg:'#F3E5F5',cat:'Plush',img:null},
+    {emoji:'🐘',title:'Elephant Plush',desc:'A soft and huggable elephant plush toy with a gentle, friendly design.',bg:'#E0F7FA',cat:'Plush',img:null},
+    {emoji:'🎈',title:'Balloon Dog Plush',desc:'A plush interpretation of the iconic balloon dog, translated into a soft and squeezable toy.',bg:'#FCE4EC',cat:'Plush',img:null},
+    {emoji:'📱',title:'Toy Phone (Rabbit)',desc:'A rabbit-shaped toy phone modeled in SolidWorks as a product design exercise.',bg:'#E8F5E9',cat:'SolidWorks',img:null},
+    {emoji:'🚛',title:'Toy Truck',desc:'A toy truck 3D model created in SolidWorks, focusing on mechanical form and proportion.',bg:'#E8F5E9',cat:'SolidWorks',img:null},
+    {emoji:'🦈',title:'Jaws Cube Figure',desc:'A cube-shaped figure inspired by the movie Jaws, sculpted in ZBrush.',bg:'#E3F2FD',cat:'ZBrush',img:null},
+    {emoji:'💥',title:'Deadpool Figure',desc:'A character figure of the main protagonist from Deadpool, sculpted in ZBrush.',bg:'#FCE4EC',cat:'ZBrush',img:null},
+    {emoji:'🧱',title:'LEGO Student Challenge',desc:'Represents modern life in LEGO — capturing how spontaneous moments like dancing or singing reconnect people in a digital world.',bg:'#FFF3E0',cat:'Competition',img:null},
+  ],
+  skills:['Toy Design','ZBrush','Maya','SolidWorks','Sketch Rendering','Child Development','Play Research','Marketing','Brand Strategy','Prototyping','KeyShot'],
+  contactSub:"Whether it's an internship, collaboration, or just a conversation about toys — I'd love to hear from you.",
+  email:'your@email.com',linkedin:'LinkedIn',insta:'Instagram',
+};
+
+let currentModal=null,editProjIdx=null,activeCat='전체';
+
+function renderCatTabs(){
+  const allCats=['전체',...CATS];
+  document.getElementById('cat-tabs').innerHTML=allCats.map(c=>{
+    const s=CAT_STYLE[c]||CAT_STYLE['전체'];
+    const isActive=c===activeCat;
+    return `<button class="cat-tab${isActive?' active':''}"
+      style="background:${isActive?s.activeBg:s.bg};border-color:${s.border};color:${isActive?s.activeColor:s.border};"
+      onclick="setCat('${c}')">${c}</button>`;
+  }).join('');
+}
+function setCat(c){activeCat=c;renderCatTabs();renderProjects();}
+function renderProjects(){
+  const filtered=activeCat==='전체'?data.projects:data.projects.filter(p=>p.cat===activeCat);
+  document.getElementById('v-proj-grid').innerHTML=filtered.map(p=>{
+    const realIdx=data.projects.indexOf(p);
+    const cs=CAT_STYLE[p.cat]||CAT_STYLE['전체'];
+    return `<div class="proj-card">
+      <div class="proj-thumb" style="background:${p.bg}">
+        <div class="proj-thumb-inner">${p.img?'':`<span>${p.emoji}</span>`}</div>
+        ${p.img?`<img src="${p.img}" alt="${p.title}">`:''}
+        <span class="cat-badge" style="border-color:${cs.border};color:${cs.border};">${p.cat}</span>
+      </div>
+      <div class="proj-body">
+        <div class="proj-body-text"><h3>${p.title}</h3><p>${p.desc}</p></div>
+        <button class="edit-btn" style="flex-shrink:0;" onclick="openProjEdit(${realIdx})">✏️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderAll(){
+  document.getElementById('v-accent').textContent=data.accent;
+  document.getElementById('v-tagline').textContent=data.tagline;
+  const av=document.getElementById('v-avatar');
+  av.innerHTML=data.avatarImg?`<img src="${data.avatarImg}">`:`<span>${data.avatarEmoji}</span>`;
+  document.getElementById('v-about-bio').textContent=data.bio;
+  document.getElementById('v-pills').innerHTML=data.pills.map(p=>`<span class="pill">${p}</span>`).join('');
+  renderCatTabs();renderProjects();
+  document.getElementById('v-skills').innerHTML=data.skills.map((s,i)=>{const c=CHIP_COLORS[i%CHIP_COLORS.length];return `<span class="chip" style="background:${c.bg};border-color:${c.b};">${s}</span>`;}).join('');
+  document.getElementById('v-contact-sub').textContent=data.contactSub;
+  document.getElementById('v-email').textContent=data.email;
+  document.getElementById('v-email-link').href='mailto:'+data.email;
+  document.getElementById('v-linkedin').textContent=data.linkedin;
+  document.getElementById('v-insta').textContent=data.insta;
+}
+function openModal(section){
+  currentModal=section;editProjIdx=null;
+  const titles={hero:'🦸 Hero 섹션',about:'👤 About Me',projects:'🎨 Projects',skills:'💪 Skills',contact:'📬 Contact'};
+  document.getElementById('modal-title-text').textContent=titles[section];
+  document.getElementById('modal-save-btn').style.display='block';
+  renderModalBody(section);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function openProjEdit(idx){
+  currentModal='proj-single';editProjIdx=idx;
+  document.getElementById('modal-title-text').textContent='✏️ 프로젝트 수정';
+  document.getElementById('modal-save-btn').style.display='block';
+  renderProjSingle(idx);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function renderModalBody(section){
+  const b=document.getElementById('modal-body');
+  if(section==='hero'){
+    b.innerHTML=`<label>이름 강조 텍스트</label><input type="text" id="m-accent" value="${data.accent}"><label>Tagline</label><input type="text" id="m-tagline" value="${data.tagline}">`;
+  } else if(section==='about'){
+    b.innerHTML=`
+      <label>프로필 이미지 업로드</label>
+      <div class="upload-area" onclick="document.getElementById('m-avatar-file').click()">📁 클릭해서 이미지 업로드 (JPG/PNG)<input type="file" id="m-avatar-file" accept="image/*" onchange="handleAvatarUpload(this)"></div>
+      ${data.avatarImg?`<div style="margin-top:8px;"><img src="${data.avatarImg}" style="width:66px;height:66px;border-radius:12px;object-fit:cover;border:2px solid #ddd;"></div>`:''}
+      <label>이모지 (이미지 없을 때)</label><input type="text" id="m-emoji" value="${data.avatarEmoji}" style="max-width:72px;">
+      <label>소개 텍스트</label><textarea id="m-bio">${data.bio}</textarea>
+      <label>태그 (쉼표로 구분)</label><input type="text" id="m-pills" value="${data.pills.join(', ')}">`;
+  } else if(section==='projects'){
+    renderProjList(b);
+  } else if(section==='skills'){
+    renderSkillEditor(b);
+  } else if(section==='contact'){
+    b.innerHTML=`<label>이메일</label><input type="email" id="m-email" value="${data.email}"><label>LinkedIn URL</label><input type="text" id="m-linkedin" value="${data.linkedin}"><label>Instagram URL</label><input type="text" id="m-insta" value="${data.insta}"><label>섹션 설명</label><textarea id="m-contact-sub">${data.contactSub}</textarea>`;
+  }
+}
+function renderProjList(b){
+  b.innerHTML=`
+    <p style="font-size:12px;color:var(--light);margin-bottom:10px;font-weight:600;">☰ 드래그해서 순서 변경</p>
+    <div id="proj-sort-list" style="max-height:380px;overflow-y:auto;">${data.projects.map((p,i)=>`
+      <div class="proj-modal-item" draggable="true" data-idx="${i}"
+        ondragstart="dragStart(event,${i})"
+        ondragover="dragOver(event)"
+        ondrop="dragDrop(event,${i})"
+        ondragend="dragEnd()"
+        style="cursor:grab;">
+        <span style="color:#ccc;font-size:16px;margin-right:4px;">☰</span>
+        <div class="proj-modal-thumb">${p.img?`<img src="${p.img}">`:`<span>${p.emoji}</span>`}</div>
+        <div class="proj-modal-info"><strong>${p.title}</strong><span>${p.cat}</span></div>
+        <span style="color:var(--coral);font-weight:700;font-size:12px;" onclick="openProjEditFromList(${i})">수정 →</span>
+      </div>`).join('')}
+    </div>
+    <button class="proj-add-btn" onclick="addProject()">+ 새 프로젝트 추가</button>`;
+  document.getElementById('modal-save-btn').style.display='none';
+}
+let dragSrcIdx=null;
+function dragStart(e,idx){dragSrcIdx=idx;e.currentTarget.style.opacity='0.4';}
+function dragOver(e){e.preventDefault();e.currentTarget.style.borderColor='var(--coral)';}
+function dragDrop(e,idx){
+  e.preventDefault();
+  if(dragSrcIdx===null||dragSrcIdx===idx)return;
+  const moved=data.projects.splice(dragSrcIdx,1)[0];
+  data.projects.splice(idx,0,moved);
+  saveToStorage();
+  renderProjects();
+  renderProjList(document.getElementById('modal-body'));
+}
+function dragEnd(){dragSrcIdx=null;document.querySelectorAll('.proj-modal-item').forEach(el=>{el.style.opacity='1';el.style.borderColor='';});}
+function openProjEditFromList(idx){editProjIdx=idx;currentModal='proj-single';document.getElementById('modal-title-text').textContent='✏️ 프로젝트 수정';document.getElementById('modal-save-btn').style.display='block';renderProjSingle(idx);}
+function renderProjSingle(idx){
+  const p=data.projects[idx];
+  document.getElementById('modal-body').innerHTML=`
+    <button class="back-btn" onclick="backToProjList()">← 목록으로</button>
+    <label>이미지 업로드</label>
+    <div class="upload-area" onclick="document.getElementById('m-pimg').click()">📁 클릭해서 이미지 업로드<input type="file" id="m-pimg" accept="image/*" onchange="handleProjImg(this)"></div>
+    ${p.img?`<div style="margin-top:8px;"><img src="${p.img}" style="width:56px;height:68px;border-radius:8px;object-fit:contain;border:2px solid #ddd;background:#f5f5f5;"></div>`:''}
+    <label>이모지 (이미지 없을 때)</label><input type="text" id="m-p-emoji" value="${p.emoji}" style="max-width:70px;">
+    <label>카테고리</label>
+    <select id="m-p-cat">${CATS.map(c=>`<option${c===p.cat?' selected':''}>${c}</option>`).join('')}</select>
+    <label>배경 색</label><input type="text" id="m-p-bg" value="${p.bg}" style="max-width:130px;">
+    <label>제목</label><input type="text" id="m-p-title" value="${p.title}">
+    <label>설명</label><textarea id="m-p-desc">${p.desc}</textarea>
+    <button class="del-btn" style="margin-top:14px;width:100%;padding:10px;" onclick="deleteProject(${idx})">🗑️ 삭제</button>`;
+}
+function backToProjList(){currentModal='projects';editProjIdx=null;document.getElementById('modal-title-text').textContent='🎨 Projects';renderProjList(document.getElementById('modal-body'));}
+function renderSkillEditor(b){
+  b.innerHTML=`<div id="m-skill-list">${data.skills.map((s,i)=>`
+    <div class="skill-row"><input type="text" value="${s}" onchange="data.skills[${i}]=this.value;"><button class="del-btn" onclick="deleteSkillFromModal(${i})">삭제</button></div>`).join('')}</div>
+  <button class="add-skill-btn" onclick="addSkillFromModal()">+ 스킬 추가</button>`;
+}
+function addSkillFromModal(){data.skills.push('새 스킬');renderSkillEditor(document.getElementById('modal-body'));}
+function deleteSkillFromModal(i){data.skills.splice(i,1);renderSkillEditor(document.getElementById('modal-body'));}
+function addProject(){data.projects.push({emoji:'🎁',title:'새 프로젝트',desc:'설명을 입력하세요.',bg:PROJ_COLORS[data.projects.length%PROJ_COLORS.length],cat:'Toy Concept',img:null});openProjEditFromList(data.projects.length-1);}
+function deleteProject(idx){data.projects.splice(idx,1);renderAll();backToProjList();}
+function handleAvatarUpload(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{data.avatarImg=e.target.result;renderModalBody('about');};r.readAsDataURL(f);}
+function handleProjImg(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{data.projects[editProjIdx].img=e.target.result;renderProjSingle(editProjIdx);};r.readAsDataURL(f);}
+function saveToStorage(){
+  try{localStorage.setItem('kiseong_portfolio',JSON.stringify(data));}catch(e){console.warn('저장 실패',e);}
+}
+function loadFromStorage(){
+  try{
+    const saved=localStorage.getItem('kiseong_portfolio');
+    if(saved){data=JSON.parse(saved);}
+  }catch(e){console.warn('불러오기 실패',e);}
+}
+function saveModal(){
+  if(currentModal==='hero'){data.accent=document.getElementById('m-accent').value;data.tagline=document.getElementById('m-tagline').value;}
+  else if(currentModal==='about'){data.avatarEmoji=document.getElementById('m-emoji').value;data.bio=document.getElementById('m-bio').value;data.pills=document.getElementById('m-pills').value.split(',').map(s=>s.trim()).filter(Boolean);}
+  else if(currentModal==='proj-single'&&editProjIdx!==null){data.projects[editProjIdx].emoji=document.getElementById('m-p-emoji').value;data.projects[editProjIdx].cat=document.getElementById('m-p-cat').value;data.projects[editProjIdx].bg=document.getElementById('m-p-bg').value;data.projects[editProjIdx].title=document.getElementById('m-p-title').value;data.projects[editProjIdx].desc=document.getElementById('m-p-desc').value;}
+  else if(currentModal==='contact'){data.email=document.getElementById('m-email').value;data.linkedin=document.getElementById('m-linkedin').value;data.insta=document.getElementById('m-insta').value;data.contactSub=document.getElementById('m-contact-sub').value;}
+  saveToStorage();
+  activeCat='전체';renderAll();closeModal();showToast();
+}
+function deleteProject(idx){data.projects.splice(idx,1);saveToStorage();renderAll();backToProjList();}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');currentModal=null;editProjIdx=null;}
+function handleOverlayClick(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+function showToast(){const t=document.getElementById('toast');t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2200);}
+loadFromStorage();
+renderAll();
+</script>
+</body>
+</html>
