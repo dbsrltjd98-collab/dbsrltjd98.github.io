@@ -126,7 +126,7 @@ textarea{resize:vertical;min-height:80px;}
 #contact{padding:64px 40px;background:var(--coral);text-align:center;}
 #contact .sec-tag{color:rgba(255,255,255,0.7);}
 #contact .sec-title{color:#fff;}
-.contact-sub{font-size:15px;color:rgba(255,255,255,0.88);font-weight:600;margin-bottom:28px;line-height:1.65;}
+.contact-sub{font-size:15px;color:#fff;font-weight:600;margin-bottom:28px;line-height:1.65;}
 .contact-chips{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;}
 .c-chip{background:#fff;border-radius:40px;padding:12px 26px;font-weight:700;font-size:14px;color:var(--dark);border:2px solid var(--dark);box-shadow:4px 4px 0 var(--dark);text-decoration:none;transition:transform 0.12s,box-shadow 0.12s;}
 .c-chip:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--dark);}
@@ -364,12 +364,13 @@ body.admin-mode .admin-nav-btns{display:flex;gap:8px;align-items:center;}
 </section>
 
 
+<section id="contact">
   <div style="max-width:640px;margin:0 auto;">
     <div class="sec-header" style="justify-content:center;gap:14px;">
       <div><p class="sec-tag">Contact</p><h2 class="sec-title">Let's Create Together!</h2></div>
       <button class="edit-btn" style="border-color:#fff;background:rgba(255,255,255,0.3);" onclick="openModal('contact')">✏️</button>
     </div>
-    <p class="contact-sub" id="v-contact-sub">Whether it's an internship, collaboration, or just a conversation about toys — I'd love to hear from you.</p>
+    <p class="contact-sub" id="v-contact-sub" style="color:var(--dark);">Whether it's an internship, collaboration, or just a conversation about toys — I'd love to hear from you.</p>
     <div class="contact-chips">
       <a class="c-chip" id="v-email-link" href="#">✉️ <span id="v-email">your@email.com</span></a>
       <a class="c-chip" id="v-linkedin-link" href="#">💼 <span id="v-linkedin">LinkedIn</span></a>
@@ -379,7 +380,7 @@ body.admin-mode .admin-nav-btns{display:flex;gap:8px;align-items:center;}
 </section>
 
 <footer>
-  <p>Made with <span>♥</span> by Kiseong Youn · Toy Designer · FIT New York</p>
+  <p>Made by Kiseong Youn · Toy Designer · FIT New York</p>
 </footer>
 
 <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
