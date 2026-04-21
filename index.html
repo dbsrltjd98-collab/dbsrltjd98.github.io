@@ -405,13 +405,22 @@ function renderProjSingle(idx){
       <img src="${p.mainImg}" style="width:56px;height:68px;border-radius:8px;object-fit:contain;border:2px solid #ddd;background:#f5f5f5;">
       <button class="del-btn" onclick="data.projects[${idx}].mainImg=null;renderProjSingle(${idx});">삭제</button>
     </div>`:''}
-    <label style="margin-top:16px;">🖼️ 추가 이미지 (여러 장)</label>
+    <label style="margin-top:16px;">🖼️ 추가 이미지 (여러 장 · 드래그로 순서 조절)</label>
     <div class="upload-area" onclick="document.getElementById('m-pimg').click()">📁 추가 이미지 업로드 (여러 장 선택 가능)<input type="file" id="m-pimg" accept="image/*" multiple onchange="handleProjImgs(this)"></div>
-    ${imgs.length>0?`<div class="img-thumb-row">${imgs.map((src,i)=>`
-      <div class="img-thumb-item">
-        <img src="${src}">
-        <button class="img-thumb-del" onclick="removeProjImg(${idx},${i})">✕</button>
-      </div>`).join('')}</div>`:''}
+    ${imgs.length>0?`
+      <div class="img-thumb-row" id="img-sort-row">
+        ${imgs.map((src,i)=>`
+          <div class="img-thumb-item" draggable="true"
+            data-imgidx="${i}"
+            ondragstart="imgDragStart(event,${i})"
+            ondragover="imgDragOver(event)"
+            ondrop="imgDragDrop(event,${idx},${i})"
+            ondragend="imgDragEnd()"
+            style="cursor:grab;">
+            <img src="${src}">
+            <button class="img-thumb-del" onclick="removeProjImg(${idx},${i})">✕</button>
+          </div>`).join('')}
+      </div>`:''}
     <label>이모지 (이미지 없을 때)</label><input type="text" id="m-p-emoji" value="${p.emoji}" style="max-width:70px;">
     <label>카테고리</label>
     <select id="m-p-cat">${CATS.map(c=>`<option${c===p.cat?' selected':''}>${c}</option>`).join('')}</select>
@@ -450,6 +459,18 @@ function handleProjImgs(input){
   });
 }
 function removeProjImg(projIdx,imgIdx){data.projects[projIdx].imgs.splice(imgIdx,1);renderProjSingle(projIdx);}
+let imgDragSrc=null;
+function imgDragStart(e,i){imgDragSrc=i;e.currentTarget.style.opacity='0.4';}
+function imgDragOver(e){e.preventDefault();e.currentTarget.style.outline='2px solid var(--coral)';}
+function imgDragDrop(e,projIdx,targetI){
+  e.preventDefault();
+  if(imgDragSrc===null||imgDragSrc===targetI)return;
+  const imgs=data.projects[projIdx].imgs;
+  const moved=imgs.splice(imgDragSrc,1)[0];
+  imgs.splice(targetI,0,moved);
+  renderProjSingle(projIdx);
+}
+function imgDragEnd(){imgDragSrc=null;document.querySelectorAll('.img-thumb-item').forEach(el=>{el.style.opacity='1';el.style.outline='';});}
 function saveToStorage(){
   try{localStorage.setItem('kiseong_portfolio',JSON.stringify(data));}catch(e){console.warn('저장 실패',e);}
 }
