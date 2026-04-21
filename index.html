@@ -426,21 +426,22 @@ function openProjEditFromList(idx){editProjIdx=idx;currentModal='proj-single';do
 function renderProjSingle(idx){
   const p=data.projects[idx];
   const imgs=p.imgs||[];
+  const base='https://dbsrltjd98.github.io/images/';
   document.getElementById('modal-body').innerHTML=`
     <button class="back-btn" onclick="backToProjList()">← 목록으로</button>
-    <label>📌 메인 이미지 (대표 이미지 1장)</label>
-    <div class="upload-area" onclick="document.getElementById('m-main-img').click()">📁 메인 이미지 업로드<input type="file" id="m-main-img" accept="image/*" onchange="handleMainImg(this)"></div>
-    ${p.mainImg?`<div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
-      <img src="${p.mainImg}" style="width:56px;height:68px;border-radius:8px;object-fit:contain;border:2px solid #ddd;background:#f5f5f5;">
-      <button class="del-btn" onclick="data.projects[${idx}].mainImg=null;renderProjSingle(${idx});">삭제</button>
-    </div>`:''}
-    <label style="margin-top:16px;">🖼️ 추가 이미지 (여러 장 · 드래그로 순서 조절)</label>
-    <div class="upload-area" onclick="document.getElementById('m-pimg').click()">📁 추가 이미지 업로드 (여러 장 선택 가능)<input type="file" id="m-pimg" accept="image/*" multiple onchange="handleProjImgs(this)"></div>
+    <p style="font-size:12px;color:var(--light);margin-bottom:14px;line-height:1.6;">💡 GitHub <code>images</code> 폴더에 파일 올리고 파일 이름만 입력하면 돼!</p>
+    <label>📌 메인 이미지 파일 이름</label>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="text" id="m-main-fname" placeholder="예: penguin.jpg" value="${p.mainImg?p.mainImg.replace(base,''):''}">
+      <button class="del-btn" onclick="document.getElementById('m-main-fname').value='';data.projects[${idx}].mainImg=null;renderProjSingle(${idx});">삭제</button>
+    </div>
+    ${p.mainImg?`<div style="margin-top:8px;"><img src="${p.mainImg}" style="width:56px;height:68px;border-radius:8px;object-fit:contain;border:2px solid #ddd;background:#f5f5f5;"></div>`:''}
+    <label style="margin-top:16px;">🖼️ 추가 이미지 파일 이름들 (한 줄에 하나씩)</label>
+    <textarea id="m-sub-fnames" rows="4" placeholder="예:&#10;penguin-2.jpg&#10;penguin-3.jpg&#10;penguin-4.jpg">${imgs.map(src=>src.replace(base,'')).join('\n')}</textarea>
     ${imgs.length>0?`
-      <div class="img-thumb-row" id="img-sort-row">
+      <div class="img-thumb-row" id="img-sort-row" style="margin-top:8px;">
         ${imgs.map((src,i)=>`
           <div class="img-thumb-item" draggable="true"
-            data-imgidx="${i}"
             ondragstart="imgDragStart(event,${i})"
             ondragover="imgDragOver(event)"
             ondrop="imgDragDrop(event,${idx},${i})"
@@ -502,42 +503,31 @@ function imgDragDrop(e,projIdx,targetI){
 function imgDragEnd(){imgDragSrc=null;document.querySelectorAll('.img-thumb-item').forEach(el=>{el.style.opacity='1';el.style.outline='';});}
 function saveToStorage(){
   try{
-    // 이미지 따로, 텍스트 따로 저장
-    const textData=JSON.parse(JSON.stringify(data));
-    const imgData={avatarImg:data.avatarImg,projects:data.projects.map(p=>({mainImg:p.mainImg,imgs:p.imgs||[]}))};
-    textData.avatarImg=null;
-    textData.projects=textData.projects.map(p=>({...p,mainImg:null,imgs:[]}));
-    localStorage.setItem('kiseong_text',JSON.stringify(textData));
-    try{
-      localStorage.setItem('kiseong_imgs',JSON.stringify(imgData));
-    }catch(e){
-      console.warn('이미지 저장 용량 초과, 텍스트만 저장됨');
-    }
+    localStorage.setItem('kiseong_portfolio',JSON.stringify(data));
     console.log('저장 완료');
   }catch(e){console.warn('저장 실패',e);}
 }
 function loadFromStorage(){
   try{
-    const savedText=localStorage.getItem('kiseong_text');
-    const savedImgs=localStorage.getItem('kiseong_imgs');
-    if(savedText){
-      data=JSON.parse(savedText);
-      if(savedImgs){
-        const imgs=JSON.parse(savedImgs);
-        data.avatarImg=imgs.avatarImg||null;
-        data.projects=data.projects.map((p,i)=>({
-          ...p,
-          mainImg:(imgs.projects[i]&&imgs.projects[i].mainImg)||null,
-          imgs:(imgs.projects[i]&&imgs.projects[i].imgs)||[],
-        }));
-      }
-    }
+    const saved=localStorage.getItem('kiseong_portfolio');
+    if(saved){data=JSON.parse(saved);}
   }catch(e){console.warn('불러오기 실패',e);}
 }
 function saveModal(){
   if(currentModal==='hero'){data.accent=document.getElementById('m-accent').value;data.tagline=document.getElementById('m-tagline').value;}
   else if(currentModal==='about'){data.avatarEmoji=document.getElementById('m-emoji').value;data.bio=document.getElementById('m-bio').value;data.pills=document.getElementById('m-pills').value.split(',').map(s=>s.trim()).filter(Boolean);}
-  else if(currentModal==='proj-single'&&editProjIdx!==null){data.projects[editProjIdx].emoji=document.getElementById('m-p-emoji').value;data.projects[editProjIdx].cat=document.getElementById('m-p-cat').value;data.projects[editProjIdx].bg=document.getElementById('m-p-bg').value;data.projects[editProjIdx].title=document.getElementById('m-p-title').value;data.projects[editProjIdx].desc=document.getElementById('m-p-desc').value;if(!data.projects[editProjIdx].imgs)data.projects[editProjIdx].imgs=[];}
+  else if(currentModal==='proj-single'&&editProjIdx!==null){
+    const base='https://dbsrltjd98.github.io/images/';
+    const mainFname=document.getElementById('m-main-fname').value.trim();
+    data.projects[editProjIdx].mainImg=mainFname?base+mainFname:null;
+    const subFnames=document.getElementById('m-sub-fnames').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    data.projects[editProjIdx].imgs=subFnames.map(f=>base+f);
+    data.projects[editProjIdx].emoji=document.getElementById('m-p-emoji').value;
+    data.projects[editProjIdx].cat=document.getElementById('m-p-cat').value;
+    data.projects[editProjIdx].bg=document.getElementById('m-p-bg').value;
+    data.projects[editProjIdx].title=document.getElementById('m-p-title').value;
+    data.projects[editProjIdx].desc=document.getElementById('m-p-desc').value;
+  }
   else if(currentModal==='contact'){data.email=document.getElementById('m-email').value;data.linkedin=document.getElementById('m-linkedin').value;data.insta=document.getElementById('m-insta').value;data.contactSub=document.getElementById('m-contact-sub').value;}
   saveToStorage();
   activeCat='전체';renderAll();closeModal();showToast();
