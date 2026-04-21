@@ -94,14 +94,19 @@ textarea{resize:vertical;min-height:80px;}
 .proj-grid{display:flex;flex-direction:column;gap:24px;}
 .proj-card{background:#fff;border-radius:18px;border:2.5px solid var(--dark);overflow:hidden;box-shadow:5px 5px 0 var(--dark);transition:transform 0.15s,box-shadow 0.15s;}
 .proj-card:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 var(--dark);}
-/* 메인 이미지 */
-.proj-thumb{width:100%;aspect-ratio:4/5;position:relative;background:#f5f5f5;overflow:hidden;}
+/* 슬라이드 영역 */
+.proj-thumb{width:100%;aspect-ratio:4/5;position:relative;background:#f5f5f5;overflow:hidden;border-bottom:2px solid var(--dark);}
 .proj-thumb-inner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:120px;}
-.proj-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;}
+.slide-track{position:absolute;inset:0;display:flex;transition:transform 0.35s ease;}
+.slide-track img{width:100%;height:100%;object-fit:contain;background:#fff;flex-shrink:0;}
 .cat-badge{position:absolute;top:14px;right:14px;font-size:11px;font-weight:800;padding:5px 13px;border-radius:20px;border:1.5px solid var(--dark);background:rgba(255,255,255,0.93);z-index:2;}
-/* 추가 이미지 그리드 */
-.proj-sub-imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:2px;border-top:2px solid var(--dark);}
-.proj-sub-imgs img{width:100%;aspect-ratio:1;object-fit:contain;background:#fafafa;display:block;}
+.slide-btn{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.92);border:2px solid var(--dark);cursor:pointer;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:3;box-shadow:2px 2px 0 var(--dark);transition:background 0.12s;line-height:1;}
+.slide-btn:hover{background:var(--yellow);}
+.slide-btn.prev{left:12px;}
+.slide-btn.next{right:12px;}
+.slide-dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:3;}
+.slide-dot{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,0.22);border:none;cursor:pointer;padding:0;transition:background 0.15s;}
+.slide-dot.on{background:var(--dark);}
 /* 편집 모달 썸네일 */
 .img-thumb-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
 .img-thumb-item{position:relative;width:56px;}
@@ -295,21 +300,45 @@ function renderProjects(){
   document.getElementById('v-proj-grid').innerHTML=filtered.map(p=>{
     const realIdx=data.projects.indexOf(p);
     const cs=CAT_STYLE[p.cat]||CAT_STYLE['전체'];
-    const subImgs=p.imgs||[];
+    const allImgs=[...(p.mainImg?[p.mainImg]:[]),...(p.imgs||[])];
+    const multi=allImgs.length>1;
     return `<div class="proj-card">
       <div class="proj-thumb" style="background:${p.bg}">
-        ${p.mainImg
-          ? `<img src="${p.mainImg}" alt="${p.title}">`
+        ${allImgs.length>0
+          ? `<div class="slide-track" id="st-${realIdx}">
+               ${allImgs.map(src=>`<img src="${src}" alt="${p.title}">`).join('')}
+             </div>
+             ${multi?`
+               <button class="slide-btn prev" onclick="slide(${realIdx},-1)">&#8249;</button>
+               <button class="slide-btn next" onclick="slide(${realIdx},1)">&#8250;</button>
+               <div class="slide-dots" id="sd-${realIdx}">
+                 ${allImgs.map((_,i)=>`<button class="slide-dot${i===0?' on':''}" onclick="slideTo(${realIdx},${i})"></button>`).join('')}
+               </div>`:''}
+             `
           : `<div class="proj-thumb-inner"><span>${p.emoji}</span></div>`}
         <span class="cat-badge" style="border-color:${cs.border};color:${cs.border};">${p.cat}</span>
       </div>
-      ${subImgs.length>0?`<div class="proj-sub-imgs">${subImgs.map(src=>`<img src="${src}" alt="${p.title}">`).join('')}</div>`:''}
-      <div class="proj-body" style="border-top:2px solid var(--dark);">
+      <div class="proj-body">
         <div class="proj-body-text"><h3>${p.title}</h3><p>${p.desc}</p></div>
         <button class="edit-btn" style="flex-shrink:0;" onclick="openProjEdit(${realIdx})">✏️</button>
       </div>
     </div>`;
   }).join('');
+}
+const SI={};
+function slide(idx,dir){
+  const p=data.projects[idx];
+  const total=[...(p.mainImg?[p.mainImg]:[]),...(p.imgs||[])].length;
+  if(total<=1)return;
+  SI[idx]=((( SI[idx]||0)+dir)%total+total)%total;
+  slideTo(idx,SI[idx]);
+}
+function slideTo(idx,i){
+  SI[idx]=i;
+  const track=document.getElementById('st-'+idx);
+  if(track)track.style.transform=`translateX(-${i*100}%)`;
+  const dots=document.querySelectorAll(`#sd-${idx} .slide-dot`);
+  dots.forEach((d,j)=>d.classList.toggle('on',j===i));
 }
 function renderAll(){
   document.getElementById('v-accent').textContent=data.accent;
